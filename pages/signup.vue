@@ -1,41 +1,132 @@
 <template>
   <div>
-    <section class="section no-top-pad">  
-        <h5 class="title is-5">Signup</h5><hr>
-        
-        <div class="columns is-centered is-mobile">
-          
-            <div class="column is-half-desktop is-full-mobile is-full-tablet">
-                <div class="field">
-                  <label class="label">Name</label>
-                  <div class="control">
-                    <input class="input" type="text" name="fullname">
-                  </div>
-                </div>                               
-                <div class="field">
-                  <label class="label">Email</label>
-                  <div class="control">
-                    <input class="input" type="email" name="email">
-                  </div>
-                </div>                
-                <div class="field">
-                  <label class="label">Password</label>
-                  <div class="control">
-                    <input class="input" type="password" name="password">
-                  </div>
-                </div>
-                <div class="field">
-                  <div class="control">
-                    <button class="button is-primary">Signup</button>
-                  </div>                    
-                </div>
+    <section class="section no-top-pad">
+      <h5 class="title is-5">
+        ユーザー登録
+      </h5><hr>
+
+      <div class="columns is-centered is-mobile">
+        <div class="column is-half-desktop is-full-mobile is-full-tablet">
+          <form @submit.prevent="onSignUp">
+            <div class="field">
+              <label class="label">お名前</label>
+              <div class="control">
+                <input
+                  v-model="fullName"
+                  v-validate="'required|min:4'"
+                  class="input"
+                  type="text"
+                  name="fullName"
+                  :class="{'is-danger': errors.has('fullName')}"
+                >
+                <p v-show="errors.has('fullName')" class="help is-danger">
+                  {{ errors.first('fullName') }}
+                </p>
+              </div>
             </div>
-        
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input
+                  v-model="email"
+                  v-validate="'required|email'"
+                  class="input"
+                  type="email"
+                  name="email"
+                  :class="{'is-danger': errors.has('email')}"
+                >
+                <p v-show="errors.has('email')" class="help is-danger">
+                  {{ errors.first('email') }}
+                </p>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">パスワード</label>
+              <div class="control">
+                <input
+                  v-model="password"
+                  v-validate="'required|min:6'"
+                  class="input"
+                  type="password"
+                  name="password"
+                  :class="{'is-danger': errors.has('password')}"
+                >
+                <p v-show="errors.has('password')" class="help is-danger">
+                  {{ errors.first('password') }}
+                </p>
+              </div>
+            </div>
+            <error-bar :error="error" />
+            <div class="field">
+              <div class="control">
+                <button type="submit" class="button is-primary" :class="{'is-loading':busy}" :disabled="busy">
+                  送信
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
-  </div>  
+  </div>
 </template>
 
 <script>
-  export default {}
+import ErrorBar from '@/components/ErrorBar'
+export default {
+  components: { ErrorBar },
+  data () {
+    return {
+      fullName: '',
+      email: '',
+      password: ''
+    }
+  },
+  computed: {
+
+    error () {
+      return this.$store.getters.error
+    },
+    busy () {
+      return this.$store.getters.busy
+    },
+    jobDone () {
+      return this.$store.getters.jobDone
+    }
+  },
+  watch: {
+    jobDone (value) {
+      if (value) {
+        this.$store.commit('setJobDone')
+        this.jobsDone()
+      }
+    }
+  },
+  methods: {
+    onSignUp () {
+      this.$validator.validateAll()
+        .then((result) => {
+          if (result) {
+            const signUpData = {
+              fullName: this.fullName,
+              email: this.email,
+              password: this.password
+            }
+            this.$store.dispatch('signUpUser', signUpData)
+          }
+        })
+    },
+    jobsDone () {
+      // vee-validateが正しく動くようにするため
+      this.$nextTick(() => {
+        this.removeErrors()
+      })
+    },
+    removeErrors () {
+      // vee-validateが正しく動くようにするため
+      this.$validator.reset()
+      this.$store.commit('clearError')
+    }
+  }
+}
 </script>
