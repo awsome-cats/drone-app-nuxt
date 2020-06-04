@@ -40,25 +40,41 @@ export const actions = {
       .then((user) => {
         // console.log('result', user.uid)
         newUser = user
-        user.updateProfile({ displayName: payload.fullName })
-        const currentUser = {
-          id: user.uid,
-          email: payload.email,
-          password: payload.password,
-          role: 'consumer'
-        }
-        console.log('USER', user)
-        commit('setUser', currentUser)
-        console.log('currentUser', currentUser)
+        return user.updateProfile({ displayName: payload.fullName })
+          .then(() => {
+            // store保管用のuserのdata
+            const currentUser = {
+              id: user.uid,
+              email: payload.email,
+              password: payload.password,
+              role: 'consumer'
+            }
+            console.log('USER', user)
+            commit('setUser', currentUser)
+            console.log('currentUser', currentUser)
+          })
       })
       .then(() => {
+        // database保管用
         const userData = {
           email: payload.email,
           password: payload.password,
           fullName: payload.fullName,
           createdAt: new Date().toISOString()
         }
-        fireApp.database().ref(`users/${newUser.uid}`).set(userData)
+        // newUserにはuserが代入されている{ email, password, uid }
+        return fireApp.database().ref(`users/${newUser.uid}`).set(userData)
+      })
+      .then(() => {
+        fireApp.database().ref('groups').orderByChild('name').equalTo('Customer').once('value')
+          .then((snapShot) => {
+            const groupKey = Object.keys(snapShot.val())[0]
+            const groupedUser = {}
+            // newUser.uidと記述しているとこがわからない
+            groupedUser[newUser.uid] = payload.fullName
+            // groupedUserにはfullnameが入る
+            return fireApp.database().ref(`userGroups/${groupKey}`).update(groupedUser)
+          })
       })
       .then(() => {
         commit('setJobDone', true)

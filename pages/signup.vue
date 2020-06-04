@@ -73,8 +73,11 @@
 
 <script>
 import ErrorBar from '@/components/ErrorBar'
+import apiJobMixin from '@/mixins/apiJobMixin'
+
 export default {
   components: { ErrorBar },
+  mixins: [apiJobMixin],
   data () {
     return {
       fullName: '',
@@ -82,26 +85,26 @@ export default {
       password: ''
     }
   },
-  computed: {
+  // computed: {
 
-    error () {
-      return this.$store.getters.error
-    },
-    busy () {
-      return this.$store.getters.busy
-    },
-    jobDone () {
-      return this.$store.getters.jobDone
-    }
-  },
-  watch: {
-    jobDone (value) {
-      if (value) {
-        this.$store.commit('setJobDone')
-        this.jobsDone()
-      }
-    }
-  },
+  //   error () {
+  //     return this.$store.getters.error
+  //   },
+  //   busy () {
+  //     return this.$store.getters.busy
+  //   },
+  //   jobDone () {
+  //     return this.$store.getters.jobDone
+  //   }
+  // },
+  // watch: {
+  //   jobDone (value) {
+  //     if (value) {
+  //       this.$store.commit('setJobDone')
+  //       this.jobsDone()
+  //     }
+  //   }
+  // },
   methods: {
     onSignUp () {
       this.$validator.validateAll()
@@ -117,16 +120,14 @@ export default {
         })
     },
     jobsDone () {
-      // vee-validateが正しく動くようにするため
-      this.$nextTick(() => {
-        this.removeErrors()
-      })
-    },
-    removeErrors () {
-      // vee-validateが正しく動くようにするため
-      this.$validator.reset()
-      this.$store.commit('clearError')
+      this.removeErrors()
+      // 初でpush以外
+      this.$router.replace('/')
     }
+    // removeErrors () {
+    //   this.$validator.reset()
+    //   this.$store.commit('clearError')
+    // }
   }
 }
 </script>
