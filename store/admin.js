@@ -38,6 +38,14 @@ export const actions = {
         console.log('error', error)
       })
   },
+  // dbからgetすると同時にkeyをget
+  getGroups ({ commit }) {
+    fireApp.database().ref('groups').on('child_added', (snapShot) => {
+      const item = snapShot.val()
+      item.key = snapShot.key
+      commit('loadGroups', item)
+    })
+  },
   updateGroup ({ commit }, payload) {
     commit('setBusy', true, { root: true })
     commit('clearError', null, { root: true })
@@ -68,14 +76,6 @@ export const actions = {
       .catch((error) => {
         console.log(error)
       })
-  },
-  // dbからgetすると同時にkeyをget
-  getGroups ({ commit }) {
-    fireApp.database().ref('groups').on('child_added', (snapShot) => {
-      const item = snapShot.val()
-      item.key = snapShot.key
-      commit('loadGroups', item)
-    })
   }
 }
 

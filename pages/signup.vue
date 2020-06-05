@@ -85,26 +85,7 @@ export default {
       password: ''
     }
   },
-  // computed: {
 
-  //   error () {
-  //     return this.$store.getters.error
-  //   },
-  //   busy () {
-  //     return this.$store.getters.busy
-  //   },
-  //   jobDone () {
-  //     return this.$store.getters.jobDone
-  //   }
-  // },
-  // watch: {
-  //   jobDone (value) {
-  //     if (value) {
-  //       this.$store.commit('setJobDone')
-  //       this.jobsDone()
-  //     }
-  //   }
-  // },
   methods: {
     onSignUp () {
       this.$validator.validateAll()
@@ -124,10 +105,7 @@ export default {
       // 初でpush以外
       this.$router.replace('/')
     }
-    // removeErrors () {
-    //   this.$validator.reset()
-    //   this.$store.commit('clearError')
-    // }
+
   }
 }
 </script>

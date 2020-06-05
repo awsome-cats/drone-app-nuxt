@@ -19,7 +19,8 @@
             <nuxt-link class="navbar-item" to="/">
               Home
             </nuxt-link>
-            <div class="navbar-item has-dropdown is-hoverable">
+            <!-- Adminメニューを隠す userIsAdmin -->
+            <div v-if="userIsAdmin" class="navbar-item has-dropdown is-hoverable">
               <a class="navbar-link is-active" href="#">
                 Admin
               </a>
@@ -47,8 +48,22 @@
           </div>
 
           <div class="navbar-end">
-            <div class="navbar-item">
-              Hi, Guest
+            <div v-if="userLoggedIn" class="navbar-item has-dropdown is-hoverable">
+              <a href="" class="navbar-link is-active">
+                こんにちは, {{ username }}さん
+              </a>
+              <div class="navbar-dropdown">
+                <nuxt-link class="navbar-item" to="/user-profile">
+                  プロフィール
+                </nuxt-link>
+                <nuxt-link class="navbar-item" to="/user-pwd-change">
+                  パスワードの変更
+                </nuxt-link>
+                <a class="navbar-item" @click="logOut">ログアウト</a>
+              </div>
+            </div>
+            <div v-else class="navbar-item">
+              こんにちは, {{ username }}さん
             </div>
             <div class="navbar-item">
               <div class="field is-grouped is-grouped-multiline">
@@ -61,7 +76,7 @@
                   </nuxt-link>
                 </p>
 
-                <p class="control">
+                <p v-if="!userLoggedIn" class="control">
                   <nuxt-link class="button is-primary" to="/login">
                     <span class="icon is-small">
                       <i class="fa fa-unlock-alt" />
@@ -72,7 +87,7 @@
                   </nuxt-link>
                 </p>
 
-                <p class="control">
+                <p v-if="!userLoggedIn" class="control">
                   <nuxt-link class="button is-info" to="/signup">
                     <span class="icon is-small">
                       <i class="fa fa-user-o" />
@@ -110,15 +125,44 @@ export default {
 
   data () {
     return {
-      key: 'value'
+      key: 'value',
+      username: 'Guest'
     }
   },
-  computed: {},
-  watch: {},
-  created () {},
+  computed: {
+    userProfile () {
+      return this.$store.getters.user
+    },
+    userLoggedIn () {
+      return this.$store.getters.loginStatus
+    },
+    userIsAdmin () {
+      return this.$store.getters.userRole === 'admin'
+    }
+
+  },
+  // ログインされたuserデータをstoreから取得した後、watchで変更を検知する
+  // pointはログアウトした表示とログインした表示を変えられること
+  watch: {
+    userProfile (value) {
+      if (value) {
+        this.username = value.name
+      } else {
+        this.username = 'ゲスト'
+      }
+    }
+  },
+  created () {
+    if (!this.userLoggedIn) {
+      this.$store.dispatch('setAuthStatus')
+    }
+  },
   mounted () {},
   methods: {
-
+    logOut () {
+      this.$store.dispatch('logOut')
+      this.$router.push('/')
+    }
   }
 }
 </script>
