@@ -36,25 +36,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <th>1</th>
-            <td />
-            <td><a href="#">プロダクト 1</a></td>
-            <td />
-            <td />
-            <td />
-            <td />
-            <td><a href="#"><span class="icon has-text-danger"><i class="fa fa-lg fa-times-circle" /></span></a></td>
-          </tr>
-          <tr>
-            <th>2</th>
-            <td />
-            <td><a href="#">プロダクト 2</a></td>
-            <td />
-            <td />
-            <td />
-            <td />
-            <td><a href="#"><span class="icon has-text-danger"><i class="fa fa-lg fa-times-circle" /></span></a></td>
+          <tr v-for="(product, index) in products" :key="product.key">
+            <th>{{ ++index }}</th>
+            <td><img :src="product.imageUrl" class="image is-48x48"></td>
+            <td><a href="#">{{ product.name }}</a></td>
+
+            <td>{{ product.code }}</td>
+            <td>
+              {{ product.brand }}
+            </td>
+            <td class="has-text-centered">
+              {{ product.stock }}
+            </td>
+            <td class="has-text-centered">
+              {{ product.status == 1 ? 'Available': 'Not Available' }}
+            </td>
+            <td><a href="#" @click.prevent="removeProduct(product)"><span class="icon has-text-danger"><i class="fa fa-lg fa-times-circle" /></span></a></td>
           </tr>
         </tbody>
       </table>
@@ -63,5 +60,39 @@
 </template>
 
 <script>
-export default {}
+export default {
+  computed: {
+    products () {
+      return this.$store.getters['product/products']
+    }
+  },
+  created () {
+    const loadProducts = this.$store.getters['product/products']
+    if (!loadProducts.length) {
+      this.$store.dispatch('product/getProducts')
+    }
+  },
+  methods: {
+    removeProduct (product) {
+      this.$swal({
+        title: '削除しますか?',
+        icon: true,
+        button: true,
+        dangerMode: true
+      })
+        .then((ok) => {
+          this.$store.dispatch('product/removeProduct', product)
+        })
+    }
+  }
+}
 </script>
+
+<style scoped>
+
+.image {
+  /* width: 100%;
+  height: 48px; */
+}
+
+</style>
