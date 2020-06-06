@@ -1,14 +1,18 @@
+
 import firebase from 'firebase'
-import 'firebase/database'
-// import 'firebase/firestore'
-
 const config = require('../config')()
+const fireConfig = config.fireConfig
 
-if (!firebase.apps.length) {
-  const fireConfig = config.fireConfig
-  firebase.initializeApp(fireConfig)
+// eslint-disable-next-line import/no-mutable-exports
+let fireApp, adminApp
+
+if (!fireApp && !firebase.apps.length) {
+  fireApp = firebase.initializeApp(fireConfig)
+  adminApp = firebase.initializeApp(fireConfig, 'fireAdmin')
+} else {
+  fireApp = firebase.app()
+  adminApp = firebase.app('fireAdmin')
 }
-const fireApp = firebase.app()
-// export const auth = firebase.app()
-// export {adminApp}
-export default fireApp
+
+export { fireApp, adminApp }
+// export default fireApp

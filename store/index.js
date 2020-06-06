@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import fireApp from '@/plugins/firebase'
-// import { auth } from '@/plugins/firebase'
+import { fireApp } from '@/plugins/firebase'
+
 export const state = () => ({
   user: null,
   error: null,
