@@ -12,7 +12,7 @@
         <div class="level-right">
           <div class="level-item">
             <nuxt-link class="button is-primary" to="/admin/product-edit">
-              Add
+              追加
             </nuxt-link>
           </div>
         </div>
