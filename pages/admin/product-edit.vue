@@ -252,8 +252,7 @@ export default {
       reader.readAsDataURL(files[0])
     },
     jobsDone () {
-      // eslint-disable-next-line no-console
-      console.log('DONE')
+      this.$router.push('product-list')
     },
     goBack () {
       window.history.go(-1)

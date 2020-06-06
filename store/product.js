@@ -1,7 +1,8 @@
 import { fireApp } from '@/plugins/firebase'
 
 export const state = () => ({
-  categories: []
+  categories: [],
+  products: []
 })
 
 export const mutations = {
@@ -15,6 +16,13 @@ export const mutations = {
   removeCategory (state, payload) {
     const i = state.categories.indexOf(payload.category)
     state.categories.splice(i, 1)
+  },
+  loadProducts (state, payload) {
+    state.products = payload
+  },
+  removeProduct (state, payload) {
+    const i = state.products.indexOf(payload)
+    state.products.splice(i, 1)
   }
 }
 
@@ -69,7 +77,7 @@ export const actions = {
         console.log(error)
       })
   },
-  addProduct ({ commit }, payload) {
+  addProduct ({ dispatch, commit }, payload) {
     const productData = payload
     const categories = payload.belongs
 
@@ -108,6 +116,7 @@ export const actions = {
         return fireApp.database().ref().update(catUpdates)
       })
       .then(() => {
+        dispatch('getProducts')
         commit('setBusy', false, { root: true })
         commit('setJobDone', true, { root: true })
       })
@@ -115,11 +124,63 @@ export const actions = {
         commit('setBusy', false, { root: true })
         commit('setError', error, { root: true })
       })
+  },
+  getProducts ({ commit }, payload) {
+    fireApp.database().ref('products').on('value', (snapShot) => {
+      // console.log(snapShot)
+      const products = []
+      let item
+      snapShot.forEach((child) => {
+        item = child.val()
+        item.key = child.key
+        products.push(item)
+      })
+      // reverse()逆の表示
+      commit('loadProducts', products.reverse())
+    })
+  },
+  removeProduct ({ commit }, payload) {
+    const imageUrl = payload.imageUrl
+    console.log(imageUrl)
+    const refUrl = imageUrl.split('?')[0]
+    const httpsRef = fireApp.storage().refFromURL(refUrl)
+    httpsRef.delete()
+      .then(() => {
+        return fireApp.database().ref(`products/${payload.key}`).remove()
+          .then(() => {
+            return fireApp.database().ref('categories').once('value')
+              .then((snapShot) => {
+                const catKey = Object.keys(snapShot.val())
+                const updates = {}
+                catKey.forEach((key) => {
+                  updates[`productCategories/${key}/${payload.key}`] = null
+                })
+                return fireApp.database().ref().update(updates)
+              })
+          })
+      })
+      .then(() => {
+        commit('removeProduct', payload)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    // fireApp.database().ref(`products/${payload.product.key}`)
+    //   .remove()
+    //   .then(() => {
+    //     commit('removeProduct', payload)
+    //   })
+    //   .catch(() => {
+    //     console.log(error)
+    //   })
   }
 }
 
 export const getters = {
   categories (state) {
     return state.categories
+  },
+  products (state) {
+    return state.products
   }
 }
