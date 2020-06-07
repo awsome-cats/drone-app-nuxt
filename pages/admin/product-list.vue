@@ -39,7 +39,7 @@
           <tr v-for="(product, index) in products" :key="product.key">
             <th>{{ ++index }}</th>
             <td><img :src="product.imageUrl" class="image is-48x48"></td>
-            <td><a href="#">{{ product.name }}</a></td>
+            <td><a href="#" @click.prevent="editProduct(product)">{{ product.name }}</a></td>
 
             <td>{{ product.code }}</td>
             <td>
@@ -71,11 +71,20 @@ export default {
     if (!loadProducts.length) {
       this.$store.dispatch('product/getProducts')
     }
+    // single productをnullにする
+    // productCategoriesをからの配列にする
+    this.$store.commit('product/loadProduct', null)
+    this.$store.commit('product/clearProductCategories')
   },
   methods: {
+    editProduct (product) {
+      // console.log('product', product)
+      this.$store.commit('product/loadProduct', product)
+      this.$router.push('product-edit')
+    },
     removeProduct (product) {
       this.$swal({
-        title: '削除しますか?',
+        title: `${product.name}削除しますか?`,
         icon: true,
         button: true,
         dangerMode: true
@@ -89,10 +98,5 @@ export default {
 </script>
 
 <style scoped>
-
-.image {
-  /* width: 100%;
-  height: 48px; */
-}
 
 </style>

@@ -172,6 +172,7 @@
 </template>
 
 <script>
+
 export default {
   computed: {
     counter () {
