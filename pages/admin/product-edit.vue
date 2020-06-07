@@ -185,9 +185,12 @@
 </template>
 
 <script>
+
+// eslint-disable-next-line no-unused-vars
+// import { v4 as uuidv4 } from 'uuid'
+
 import ErrorBar from '@/components/ErrorBar'
 import apiJobMixin from '@/mixins/apiJobMixin'
-
 export default {
   components: {
     ErrorBar
@@ -206,19 +209,35 @@ export default {
       description: '',
       image: null,
       imageName: '',
-      imageUrl: 'https://placehold.it/800x600'
+      imageUrl: 'https://placehold.it/800x600',
+      oldImageUrl: ''
     }
   },
   middleware: 'verify-admin',
   computed: {
     categories () {
       return this.$store.getters['product/categories']
+    },
+    productCategories () {
+      return this.$store.getters['product/productCategories']
+    }
+  },
+  watch: {
+    productCategories (value) {
+      if (value) {
+        this.belongs = value
+      }
     }
   },
   mounted () {
     const loadCategories = this.$store.getters['product/categories']
     if (loadCategories.length === 0) {
       this.$store.dispatch('product/getCategories')
+    }
+    const product = this.$store.getters['product/product']
+    if (product != null) {
+      this.populateForm(product)
+      this.$store.dispatch('product/productCategories', product.key)
     }
   },
   methods: {
@@ -235,8 +254,19 @@ export default {
             status: this.status,
             description: this.description,
             image: this.image
+            // imageName: uuidv4() + this.imageName
+
           }
-          this.$store.dispatch('product/addProduct', productData)
+          // 新規
+          if (!this.key) {
+            this.$store.dispatch('product/addProduct', productData)
+          } else {
+            // 更新
+            productData.key = this.key
+            productData.imageUrl = this.imageUrl
+            productData.oldImageUrl = this.oldImageUrl
+            this.$store.dispatch('product/updateProduct', productData)
+          }
         }
       })
     },
@@ -250,6 +280,18 @@ export default {
         this.imageUrl = reader.result
       }
       reader.readAsDataURL(files[0])
+    },
+    populateForm (product) {
+      this.key = product.key
+      this.name = product.name
+      this.code = product.code
+      this.brand = product.brand
+      this.price = product.price
+      this.stock = product.stock
+      this.status = product.name
+      this.description = product.description
+      this.imageUrl = product.imageUrl
+      this.oldImageUrl = product.imageUrl
     },
     jobsDone () {
       this.$router.push('product-list')

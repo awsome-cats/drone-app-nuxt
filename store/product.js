@@ -2,7 +2,9 @@ import { fireApp } from '@/plugins/firebase'
 
 export const state = () => ({
   categories: [],
-  products: []
+  products: [],
+  product: null,
+  productCategories: []
 })
 
 export const mutations = {
@@ -20,9 +22,18 @@ export const mutations = {
   loadProducts (state, payload) {
     state.products = payload
   },
+  loadProduct (state, payload) {
+    state.product = payload
+  },
   removeProduct (state, payload) {
     const i = state.products.indexOf(payload)
     state.products.splice(i, 1)
+  },
+  loadProductCategories (state, payload) {
+    state.productCategories.push(payload)
+  },
+  clearProductCategories (state) {
+    state.productCategories = []
   }
 }
 
@@ -109,6 +120,7 @@ export const actions = {
           imageUrl
         }
         // ここからが味噌
+        // ここはよくわからないのでdocumentを読んで
         const catUpdates = {}
         categories.forEach((catKey) => {
           catUpdates[`productCategories/${catKey}/${productKey}`] = productSnippet
@@ -141,7 +153,7 @@ export const actions = {
   },
   removeProduct ({ commit }, payload) {
     const imageUrl = payload.imageUrl
-    console.log(imageUrl)
+    // console.log(imageUrl)
     const refUrl = imageUrl.split('?')[0]
     const httpsRef = fireApp.storage().refFromURL(refUrl)
     httpsRef.delete()
@@ -162,17 +174,90 @@ export const actions = {
       .then(() => {
         commit('removeProduct', payload)
       })
+
       .catch((error) => {
         console.log(error)
       })
-    // fireApp.database().ref(`products/${payload.product.key}`)
-    //   .remove()
-    //   .then(() => {
-    //     commit('removeProduct', payload)
-    //   })
-    //   .catch(() => {
-    //     console.log(error)
-    //   })
+  },
+  updateProduct ({ dispatch, commit }, payload) {
+    // console.log('payload', payload)
+    // console.log('TEST', payload)
+    const productData = payload
+    const categories = productData.belongs
+    const image = payload.image
+    const productKey = payload.key
+    let oldImageUrl = null
+    // eslint-disable-next-line prefer-const
+    let oldCatsRemoval = {}
+    delete productData.belongs
+    delete productData.image
+
+    commit('setBusy', true, { root: true })
+    commit('clearError', null, { root: true })
+    fireApp.database().ref(`products/${productKey}`).update(productData)
+      .then(() => {
+        if (image) { // もしnew imageが提供されていたらimageをアップする
+          return fireApp.storage().ref(`products/${image.name}`).put(image)
+        } else {
+          return false
+        }
+      })
+      .then((fileData) => { // 新しいimageのurlにproductsのデータを更新する
+        if (fileData) {
+          oldImageUrl = productData.oldImageUrl
+          productData.imageUrl = fileData.metadata.downloadURLs[0]
+          return fireApp.database().ref('products').child(productKey).update({ imageUrl: productData.imageUrl })
+        }
+      })
+      .then(() => { // 古いimageが残っており、新しいimageを挿入する場合、古いimageを削除する
+        if (oldImageUrl) {
+          const refUrl = oldImageUrl.split('?')[0]
+          const httpsRef = fireApp.storage().refFromURL(refUrl)
+          return httpsRef.delete()
+        }
+      })
+      .then(() => { // 添付のproductCategoriesコレクションの削除の準備
+        return fireApp.database().ref('productCategories').on('child_added', (snapShot) => {
+          oldCatsRemoval[`productCategories/${snapShot.key}/${productKey}`] = null
+        })
+      })
+      .then(() => { // productCategoriesのデータ削除
+        return fireApp.database().ref().update(oldCatsRemoval)
+      })
+      .then(() => { // productCategoriesに挿入するnew data
+        const productSnippet = {
+          name: productData.name,
+          imageUrl: productData.imageUrl,
+          price: productData.price,
+          status: productData.status
+        }
+        // eslint-disable-next-line prefer-const
+        let catUpdates = {}
+        categories.forEach((catKey) => {
+          catUpdates[`productCategories/${catKey}/${productKey}`] = productSnippet
+        })
+        return fireApp.database().ref().update(catUpdates)
+      })
+      .then(() => {
+        dispatch('getProducts')
+        commit('setBusy', false, { root: true })
+        commit('setJobDone', true, { root: true })
+      })
+      .catch((error) => {
+        commit('setBusy', false, { root: true })
+        commit('setError', error, { root: true })
+      })
+  },
+  productCategories ({ commit }, payload) {
+    commit('clearProductCategories')
+    fireApp.database().ref('productCategories').on('child_added',
+      (snapShot) => {
+        const item = snapShot.val()
+        item.key = snapShot.key
+        if (item[payload] !== undefined) {
+          commit('loadProductCategories', item.key)
+        }
+      })
   }
 }
 
@@ -182,5 +267,11 @@ export const getters = {
   },
   products (state) {
     return state.products
+  },
+  product (state) {
+    return state.product
+  },
+  productCategories (state) {
+    return state.productCategories
   }
 }
