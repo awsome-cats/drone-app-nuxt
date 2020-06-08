@@ -10,7 +10,6 @@
         <div class="column is-5 is-offset-1">
           <div class="title is-2">
             {{ product.name }}
-            {{ $route.params.id }}
           </div>
           <p class="title is-3 has-text-muted">
             {{ product.price | currency }}
@@ -59,7 +58,7 @@
       </h6>
       <hr size="1">
       <div class="content">
-        <p :inner-html.prop="product.description | nl2br" />
+        <p :inner-html.prop="product.description | nl2br " />
       </div>
     </section>
   </div>
@@ -77,8 +76,13 @@ export default {
         return { product }
       })
   },
-  mounted () {
-    console.log('test', this.product)
+  head () {
+    return {
+      title: this.product.name,
+      meta: [
+        { hid: 'description', name: 'description', content: this.product.name }
+      ]
+    }
   }
 }
 </script>
