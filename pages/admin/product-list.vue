@@ -61,6 +61,7 @@
 
 <script>
 export default {
+  middleware: 'verify-admin',
   computed: {
     products () {
       return this.$store.getters['product/products']

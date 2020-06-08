@@ -187,7 +187,7 @@
 <script>
 
 // eslint-disable-next-line no-unused-vars
-// import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 
 import ErrorBar from '@/components/ErrorBar'
 import apiJobMixin from '@/mixins/apiJobMixin'
@@ -196,6 +196,7 @@ export default {
     ErrorBar
   },
   mixins: [apiJobMixin],
+  middleware: 'verify-admin',
   data () {
     return {
       key: 0,
@@ -213,7 +214,7 @@ export default {
       oldImageUrl: ''
     }
   },
-  middleware: 'verify-admin',
+
   computed: {
     categories () {
       return this.$store.getters['product/categories']
@@ -253,8 +254,8 @@ export default {
             belongs: this.belongs,
             status: this.status,
             description: this.description,
-            image: this.image
-            // imageName: uuidv4() + this.imageName
+            image: this.image,
+            imageName: uuidv4() + this.imageName
 
           }
           // 新規

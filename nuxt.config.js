@@ -37,7 +37,8 @@ export default {
   plugins: [
     // '@/plugins/firebase'
     '@/plugins/vee-validate',
-    '@/plugins/vue-swal'
+    '@/plugins/vue-swal',
+    '@/plugins/filters'
   ],
   /*
   ** Nuxt.js dev-modules

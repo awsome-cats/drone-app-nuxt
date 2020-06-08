@@ -71,6 +71,7 @@ export default {
   components: {
     ErrorBar
   },
+  middleware: 'verify-admin',
   mixins: [apiJobMixin],
   data () {
     return {

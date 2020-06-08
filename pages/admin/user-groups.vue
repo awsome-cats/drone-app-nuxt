@@ -71,6 +71,7 @@
 <script>
 import ErrorBar from '@/components/ErrorBar'
 export default {
+  middleware: 'verify-admin',
   components: { ErrorBar },
   data () {
     return {
