@@ -153,6 +153,38 @@ export const actions = {
       }
     })
   },
+  // passwordの変更
+  changePwd ({ commit }, payload) {
+    commit('setBusy', true)
+    commit('clearError')
+    const getUser = getters.user
+    const user = fireApp.auth().currentUser
+    // DBの変更
+    const updateDb = () => {
+      const updateData = {}
+      updateData[`users/${user.uid}/password`] = payload.password
+      return fireApp.database().ref().update(updateData)
+    }
+    user.updatePassword(payload.password)
+      .then(updateDb)
+      .then(() => {
+        const userData = {
+          id: getUser.id,
+          email: getUser.email,
+          password: payload.password,
+          role: getUser.role
+        }
+        console.log('userData', userData)
+      })
+      .then(() => {
+        commit('setBusy', false)
+        commit('setJobDone', true)
+      })
+      .catch((error) => {
+        commit('setBusy', false)
+        commit('setError', error)
+      })
+  },
   updateProfile ({ commit, getters }, payload) {
     // 1. Update user name with updateProfile
     // 2. Upadate user email with updateEmail
@@ -169,8 +201,10 @@ export const actions = {
     const updateDb = () => {
       const updateObj = {}
       if (userData.role === 'admin') {
+        // admin Id
         updateObj[`userGroups/-M8xd3z4xBcmzR9AzoVJ/${user.uid}`] = payload.fullName
       }
+      // customer Id
       updateObj[`userGroups/-M8xZCh83Z7tNxePIqlc/${user.uid}`] = payload.fullName
       updateObj[`users/${user.uid}/email`] = payload.email
       updateObj[`users/${user.uid}/fullName`] = payload.fullName
